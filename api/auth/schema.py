@@ -12,3 +12,5 @@ class UserCreate(BaseModel):
     fullname: str = Field(..., example='Test')
 
 
+class UserPassword(BaseModel):
+    password: str

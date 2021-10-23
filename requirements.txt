@@ -8,3 +8,5 @@ pydantic[dotenv]
 asyncpg
 psycopg2
 starlette
+passlib
+bcrypt

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from api.utils.db_util import database
-
+from api.auth import router as auth_router
 
 app = FastAPI(
     docs_url="/docs",
@@ -23,6 +23,4 @@ async def shutdown():
     await database.disconnect()
 
 
-@app.get("/hello")
-def hello():
-    return "hello world"
+app.include_router(auth_router.router, tags=['Auth'])

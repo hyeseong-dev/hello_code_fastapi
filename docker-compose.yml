@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  db:
+    container_name: hello_coder_db
+    image: postgres
+    ports:
+      - 54322:5432
+    env_file:
+      - ./api/.env
+    environment:
+      - POSTGREST_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
+      - TZ=Asia/Seoul
+    networks:
+      - hello_network
+
+  api:
+    build: .
+    container_name: hello_coder_api
+    ports:
+      - 8000:80
+    volumes:
+      - ./api:/api
+    env_file:
+      - ./api/.env
+    networks:
+      - hello_network
+    depends_on:
+      - db
+
+networks:
+  hello_network:
+    driver: bridge

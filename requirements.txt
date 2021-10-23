@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+black
+databases
+sqlalchemy
+pydantic
+pydantic[dotenv]
+asyncpg
+psycopg2
+starlette

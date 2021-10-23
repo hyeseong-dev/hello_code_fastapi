@@ -12,5 +12,12 @@ class UserCreate(BaseModel):
     fullname: str = Field(..., example='Test')
 
 
-class UserPassword(BaseModel):
-    password: str
+class ForgotPassword(BaseModel):
+    email: str = Field(..., example='test@gmail.com')
+
+
+class ResetPassword(BaseModel):
+    reset_password_token: str = Field(...,
+                                      example='b97b9116-341a-11ec-b960-0242ac170003')
+    new_password: str = Field(..., example='testpassword')
+    confirm_password: str = Field(..., example='testpassword')

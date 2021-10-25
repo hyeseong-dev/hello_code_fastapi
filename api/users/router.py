@@ -67,3 +67,15 @@ async def change_password(
         'status_code':status.HTTP_200_OK,
         'detail': 'Password Has Been Change Successfully',
     }
+
+@router.get('/user/logout')
+async def logout(
+    token: str = Depends(jwt_util.get_token_user),
+    current_user: auth_schema.UserList = Depends(jwt_util.get_current_active_user)
+):
+    # Save token of user to table blacklist
+    result = await user_crud.save_black_list_token(token, current_user)
+    return {
+        'status_code': status.HTTP_200_OK,
+        'detail': 'User Logged Out Successfully'
+    }

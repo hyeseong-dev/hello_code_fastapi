@@ -19,21 +19,18 @@ router = APIRouter(
 @router.post('/auth/register', response_model=auth_schema.UserList)
 async def register(payload: auth_schema.UserCreate):
     # Check User Exist
-    print('1'*100)
+    
     result = await auth_crud.find_user_exist(payload.email)
     if result:
         raise BusinessException(status_code=409, detail="User Already Registerd")
-    print('2'*100)
+    
     # Create New User
     # hash password here
     payload.password = crypto_util.hash_password(payload.password)
-    print('3'*100)
-    result = await auth_crud.save_user(payload)
-    print('*'*100)
-    print(result)
-    result = {**payload.dict()}
+    await auth_crud.save_user(payload)
+    result = await auth_crud.find_user_exist(payload.email)
     
-    return {**payload.dict()}
+    return result
 
 
 @router.post('/auth/login')
@@ -133,4 +130,5 @@ async def reset_password(request: auth_schema.ResetPassword):
         "code": 200,
         "message": "Password Has Been Reset Successfully"
     }
+
 

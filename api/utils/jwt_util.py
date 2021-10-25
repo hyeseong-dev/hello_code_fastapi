@@ -26,6 +26,10 @@ oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl='/api/v1/auth/login'
 )
 
+def get_token_user(token: str = Depends(oauth2_scheme)):
+    return token
+
+
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception=HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -35,13 +39,15 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 
     try:
         payload = jwt.decode(token, const_util.SECRET_KEY, algorithms=[const_util.ALGORITHM_HS256] )
-        print('='*100)
-        print(payload)
-        print('='*100)
         username: str = payload.get('sub')
         if username is None:
             raise credentials_exception
         
+        # Check blacklist token
+        black_list_token = await crud.find_black_list_token(token)
+        if black_list_token:
+            raise credentials_exception
+
         # Check user existed
         result = await crud.find_user_exist(username)
         if not result:

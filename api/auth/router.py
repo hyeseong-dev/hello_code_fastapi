@@ -1,13 +1,14 @@
+import jwt
 import uuid
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
-
-import jwt
 
 from api.auth import schema
 from api.auth import crud
 from api.utils import crypto_util, jwt_util, const_util, email_util
 
+from api.exceptions.business import BusinessException
 
 router = APIRouter(
     prefix='/api/v1'
@@ -19,8 +20,8 @@ async def register(payload: schema.UserCreate):
     # Check User Exist
     result = await crud.find_user_exist(payload.email)
     if result:
-        raise HTTPException(status_code=404, detail='User Already Registered.')
-
+        # raise HTTPException(status_code=404, detail='User Already Registered.')
+        raise BusinessException(status_code=409, detail="User Already Registerd")
     # Create New User
     # hash password here
     payload.password = crypto_util.hash_password(payload.password)
@@ -76,21 +77,21 @@ async def forgot_password(request: schema.ForgotPassword):
     # Sending Email
     subject = 'Hello Coder'
     recipient = [request.email]
-    message = """
+    message = f"""
     <!DOCTYPE html>
     <html>
     <title> Reset Password</title>
     <body>
     <div style="width:100%; font-family: monospace;">
-        <h1>Hello, {0:}</h1>
+        <h1>Hello, {request.email}</h1>
         <p>Someone has requested a link to reset your password. If you requested this, you can change your password through th button below.</p>
-        <a href="http://127.0.0.1:8000/user/forgot-password?reset_password_token={1:}"></a>
+        <a href="http://127.0.0.1:8000/user/forgot-password?reset_password_token={reset_code}"></a>
         <p>If you didn't request this, you can ignore this email.</p>
         <p>Your password won't change until you access the link above and create a new one.</p>
     </div>
     </body>
     </html>
-    """.format(request.email, reset_code)
+    """
 
     await email_util.send_email(subject, recipient, message)
 

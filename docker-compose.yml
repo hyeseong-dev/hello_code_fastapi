@@ -2,10 +2,10 @@ version: "3.8"
 
 services:
   db:
-    container_name: hello_coder_db
+    container_name: coder_db
     image: postgres
     ports:
-      - 54322:5432
+      - 54325:5432
     env_file:
       - ./api/.env
     environment:
@@ -19,9 +19,10 @@ services:
 
   api:
     build: .
-    container_name: hello_coder_api
+    container_name: coder_api
     ports:
-      - 8000:80
+      - 8800:80
+      - 587:587
     volumes:
       - ./api:/api
     env_file:

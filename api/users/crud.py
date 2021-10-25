@@ -1,5 +1,5 @@
-from api.users import schema as user_schema
-from api.auth import schema as auth_schema
+from api.users import schema as user_schema, crud as auth_crud
+from api.auth import schema as auth_schema, crud as user_crud
 from api.utils.db_util import database
 
 def update_user(

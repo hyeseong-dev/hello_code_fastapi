@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 
 class UserList(BaseModel):
-    id:  int = Field(..., example='1')
+    id:  int = Field(None, example=1)
     email: str = Field(..., example='test@gmail.com')
     fullname: str = Field(..., example='Test')
     created_on: Optional[datetime] = None

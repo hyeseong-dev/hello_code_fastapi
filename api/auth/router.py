@@ -1,11 +1,12 @@
 import jwt
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 
-from api.auth import schema
-from api.auth import crud
+from api.auth import schema as auth_schema,crud as auth_crud
+from api.users import schema as user_schema, crud as user_crud
+
 from api.utils import crypto_util, jwt_util, const_util, email_util
 
 from api.exceptions.business import BusinessException
@@ -15,29 +16,35 @@ router = APIRouter(
 )
 
 
-@router.post('/auth/register', response_model=schema.UserList)
-async def register(payload: schema.UserCreate):
+@router.post('/auth/register', response_model=auth_schema.UserList)
+async def register(payload: auth_schema.UserCreate):
     # Check User Exist
-    result = await crud.find_user_exist(payload.email)
+    print('1'*100)
+    result = await auth_crud.find_user_exist(payload.email)
     if result:
-        # raise HTTPException(status_code=404, detail='User Already Registered.')
         raise BusinessException(status_code=409, detail="User Already Registerd")
+    print('2'*100)
     # Create New User
     # hash password here
     payload.password = crypto_util.hash_password(payload.password)
-    await crud.save_user(payload)
+    print('3'*100)
+    result = await auth_crud.save_user(payload)
+    print('*'*100)
+    print(result)
+    result = {**payload.dict()}
+    
     return {**payload.dict()}
 
 
 @router.post('/auth/login')
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     # Check user existed
-    result = await crud.find_user_exist(form_data.username)
+    result = await auth_crud.find_user_exist(form_data.username)
     if not result:
         raise HTTPException(status_code=404, detail='User Not Found')
 
     # Verify Password
-    user = schema.UserCreate(**result)
+    user = auth_schema.UserCreate(**result)
     verified_password = crypto_util.verify_password(
         form_data.password, user.password)
 
@@ -64,15 +71,15 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
 
 @router.post('/auth/forgot_password')
-async def forgot_password(request: schema.ForgotPassword):
+async def forgot_password(request: auth_schema.ForgotPassword):
     # Check user existed
-    result = await crud.find_user_exist(request.email)
+    result = await auth_crud.find_user_exist(request.email)
     if not result:
         raise HTTPException(status_code=404, detail='User Not Found')
 
     # Create reset code and save in database
     reset_code = str(uuid.uuid1())
-    await crud.create_reset_code(request.email, reset_code)
+    await auth_crud.create_reset_code(request.email, reset_code)
 
     # Sending Email
     subject = 'Hello Coder'
@@ -103,9 +110,9 @@ async def forgot_password(request: schema.ForgotPassword):
 
 
 @router.patch('/auth/reset-password')
-async def reset_password(request: schema.ResetPassword):
+async def reset_password(request: auth_schema.ResetPassword):
     # Check valid reset password token
-    reset_token = await crud.check_reset_password_token(request.reset_password_token)
+    reset_token = await auth_crud.check_reset_password_token(request.reset_password_token)
     if not reset_token:
         raise HTTPException(
             status_code=404, detail="Reset Password Token Has Expired, Please Request A New One.")
@@ -115,14 +122,15 @@ async def reset_password(request: schema.ResetPassword):
         raise HTTPException(status_code=400, detail="Password Not Match")
 
     # Reset New Password
-    forgot_password_object = schema.ForgotPassword(**reset_token)
+    forgot_password_object = auth_schema.ForgotPassword(**reset_token)
     new_hashed_password = crypto_util.hash_password(request.new_password)
-    await crud.reset_password(new_hashed_password, forgot_password_object.email)
+    await auth_crud.reset_password(new_hashed_password, forgot_password_object.email)
 
     # Disable reset code (already used)
-    await crud.disable_reset_code(request.reset_password_token, forgot_password_object.email)
+    await auth_crud.disable_reset_code(request.reset_password_token, forgot_password_object.email)
 
     return {
         "code": 200,
         "message": "Password Has Been Reset Successfully"
     }
+

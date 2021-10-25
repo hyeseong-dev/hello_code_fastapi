@@ -8,7 +8,7 @@ def find_user_exist(email: str):
 
 
 def save_user(user: schema.UserCreate):
-    query = "INSERT INTO py_users VALUES (nextval('user_id_seq'), :email, :password, :fullname, now() AT TIME ZONE 'Asia/Seoul', '1')"
+    query = "INSERT INTO py_users VALUES (nextval('user_id_seq'), :email, :password, :fullname, now() AT TIME ZONE 'Asia/Seoul', '1'); SELECT currval('user_id_seq');"
     return database.execute(query, values={'email': user.email, 'password': user.password, 'fullname': user.fullname})
 
 

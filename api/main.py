@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from api.utils.db_util import database
 from api.auth import router as auth_router
+from api.users import router as user_router
 
 from api.exceptions.business import BusinessException
 
@@ -35,3 +36,4 @@ async def unicorn_exception_handler(request: Request, e: BusinessException):
 
 
 app.include_router(auth_router.router, tags=['Auth'])
+app.include_router(user_router.router, tags=['Users'])

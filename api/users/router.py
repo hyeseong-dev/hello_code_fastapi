@@ -60,6 +60,7 @@ async def change_password(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='New Password Not Match')
 
     # Change Password
+    change_password_object.new_password = crypto_util.hash_password(change_password_object.new_password)
     await user_crud.change_password(change_password_object, current_user)
 
     return {
